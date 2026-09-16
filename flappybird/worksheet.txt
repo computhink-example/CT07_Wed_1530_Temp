@@ -1,0 +1,65 @@
+Write down 3 games that you have played recently.
+For each one, write down:
+
+1. Minecraft
+• What is the goal of the game?
+Defeat the Ender Dragon
+
+• How do you interact/ control it?
+WASD / Space - Movement
+Left Click - Mine / Attack
+Right Click - Place / Interact
+
+• What happens when you win or lose?
+When you win the credits roll.
+When you lose, you drop the items in your inventory.
+
+Flappy Bird Analysis Worksheet
+
+What are the objects?
+
+What are the player’s actions?
+
+What is the goal?
+
+What causes game over?
+
+How is progress shown?
+
+For each phase: 
+• Describe what it will look like (e.g. “Pipes move from right to left”) 
+• The Gameplay mechanics (e.g. “spawn pipes every 2 seconds”)
+• Any constraints that we need to add in.
+
+1. Background and Character Setup
+
+Background moving slowly to the left.
+Character is in the middle of the screen.
+
+2. Player Movement & Gravity
+
+Bird is always moving down because of gravity.
+Bird can fly up on click / space.
+
+3. Pipes or other Obstacles
+
+The pipes appear at fixed distances.
+The pipes change their y position randomly.
+
+4. Scrolling and Camera Position
+
+Camera is slowly moving to the right.
+Pipes are moving to the left.
+Background and floor is also moving and looping.
+
+5. Sprite Collision and Game Over
+
+Bird can collide with the pipes and floor.
+Game ends when the bird collides.
+
+6. Score Tracking and Sounds
+
+Score increases when the bird goes through the pipes.
+Bird flap sound effect.
+Score increase sound effect.
+Bird collide sound effect.
