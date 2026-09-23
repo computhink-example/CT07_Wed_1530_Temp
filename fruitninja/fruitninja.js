@@ -6,7 +6,14 @@ let trail;
 let fruitHalves; // new group for sliced halves
 let score = 0;
 let missed = 0;
+
 let gameState = "start"; // "start", "playing", "gameOver"
+let gameStartTime = 0;  // Save time when game starts
+let gameTimer = 0;  // Tracks seconds elapsed
+let gameDuration = 10;  // Round duration
+
+let bgMusic; // Background Music
+let sliceSound;
 
 function preload() {
     // Load image
@@ -53,6 +60,9 @@ function preload() {
     // store the fruit objects into an array
     fruitTypes = [peach, watermelon, tomato, dragonfruit];
 
+    // Music and sound effects
+    bgMusic = loadSound("assets/fruit-ninja-bgtrack.mp3");
+    sliceSound = loadSound("assets/fruit-ninja-combo.mp3");
 }
 
 function setup() {
@@ -61,6 +71,10 @@ function setup() {
     world.gravity.y = 10;
     fruitGroup = new Group();
     fruitHalves = new Group(); // group for fruit halves
+
+    // Adjust volume 0 - 1
+    bgMusic.setVolume(0.1);
+    sliceSound.setVolume(0.3);
 }
 
 function draw() {
@@ -80,6 +94,12 @@ function draw() {
         // Change to playing state
         if (kb.presses(" ") || mouse.presses()) {
             gameState = "playing";
+            gameStartTime = millis(); // Returns time in ms since program started
+            gameTimer = 0;
+
+            if (bgMusic.isPlaying() === false){
+                bgMusic.loop();
+            }
         }
         return;
     } else if (gameState === "playing") {
@@ -88,9 +108,8 @@ function draw() {
         fill("rgba(0, 210, 0, 0.8)") // Text colour
         textSize(50);
         textAlign(LEFT, BOTTOM); // Default alignment
-        stroke("rgb(0, 0, 0)"); // Text outline
-        strokeWeight(10);
-        // noStroke(); // Remove outline
+        // stroke("rgb(0, 0, 0)"); // Text outline
+        // strokeWeight(10);
         // text("frameCount:"+ frameCount, 10, 40); // (string, x pos, y pos)
         text("Score: " + score, 10, 60);
         fill("rgba(210, 0, 0, 0.8)"); // ("rgba(red, green, blue, alpha)") alpha = transparency
@@ -104,7 +123,9 @@ function draw() {
 
         // handle slicing when mouse is pressed
         if (mouse.pressing()){
+            // noStroke(); // Remove outline
             trail = new Sprite(mouse.x, mouse.y, 7);
+            strokeWeight(0);
             trail.collider = 'none';
             trail.color = 'red';
             trail.life = 10;
@@ -113,10 +134,49 @@ function draw() {
 
         // Check if fruits fall
         missedFruit();
-        return;
-    } else if (gameState === "gameOver") {
-        // Game Over Screen
 
+        // Track time
+        // floor() or .toFixed()
+        gameTimer = (millis() - gameStartTime) / 1000; // Time since game start in seconds
+        fill("rgba(255, 210, 0, 0.8)")
+        // Countdown = duration - time elapsed
+        text("Time: " + (gameDuration - gameTimer).toFixed(2), width / 2, 60);
+
+        // Win / Lose condition
+        if (missed >= 5) {  // Lose condition
+            gameState = "lose";
+        } else if (score >= 20 || (gameDuration - gameTimer) <= 0) {  // Win condition
+            gameState = "win";
+        }
+
+        return;
+    } else if (gameState === "win") {
+        // Win screen text / stats
+        fill("rgb(255, 240, 10)") // Text colour
+        stroke("rgb(20, 20, 20)"); // Text outline
+        strokeWeight(15);
+        textSize(75);
+        textAlign(CENTER, CENTER); // (horizontal, vertical) - LEFT, RIGHT, TOP, BOTTOM, CENTER
+        text("Game Over!", width / 2, height * 0.3); // (string, x pos, y pos)
+        text("You Win!", width / 2, height * 0.5);
+        noStroke();
+        textSize(50);
+        text("Score: " + score, width / 2, height * 0.7);
+        text("Missed: " + missed, width / 2, height * 0.8);
+        return;
+    }  else if (gameState === "lose") {
+        // Lose screen text / stats
+        fill("rgb(200, 0, 200)") // Text colour
+        stroke("rgb(20, 20, 20)"); // Text outline
+        strokeWeight(15);
+        textSize(75);
+        textAlign(CENTER, CENTER); // (horizontal, vertical) - LEFT, RIGHT, TOP, BOTTOM, CENTER
+        text("Game Over!", width / 2, height * 0.3); // (string, x pos, y pos)
+        text("You Lose...", width / 2, height * 0.5);
+        noStroke();
+        textSize(50);
+        text("Score: " + score, width / 2, height * 0.7);
+        text("Missed: " + missed, width / 2, height * 0.8);
         return;
     }
 }
@@ -141,6 +201,8 @@ function sliceFruit(){
             fruit.remove(); // remove whole fruit
 
             splitFruit(fx, fy, fruit.type); // spawn halves
+
+            sliceSound.play();
 
             break; // only slice one fruit per frame
         }
