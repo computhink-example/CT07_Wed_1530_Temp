@@ -10,10 +10,17 @@ let missed = 0;
 let gameState = "start"; // "start", "playing", "gameOver"
 let gameStartTime = 0;  // Save time when game starts
 let gameTimer = 0;  // Tracks seconds elapsed
-let gameDuration = 10;  // Round duration
+let gameDuration = 1000;  // Round duration
 
 let bgMusic; // Background Music
 let sliceSound;
+let winSound;
+let loseSound;
+
+let difficultyLevel = 1; // 1 - 1 fruit, 2 - fruits...
+let difficultyIncrease = false; // Make sure difficulty increases once at a time
+let spawnRate = 120; // Default spawn every 2 sec
+let difficultyIncreaseTimer = 10; // Increase difficulty every 10 sec
 
 function preload() {
     // Load image
@@ -63,6 +70,8 @@ function preload() {
     // Music and sound effects
     bgMusic = loadSound("assets/fruit-ninja-bgtrack.mp3");
     sliceSound = loadSound("assets/fruit-ninja-combo.mp3");
+    winSound = loadSound("assets/sitar_positive_long.wav");
+    loseSound = loadSound("assets/sitar_negative_long.wav");
 }
 
 function setup() {
@@ -72,9 +81,11 @@ function setup() {
     fruitGroup = new Group();
     fruitHalves = new Group(); // group for fruit halves
 
-    // Adjust volume 0 - 1
+    // Adjust volume 0 - 1 (1 default)
     bgMusic.setVolume(0.1);
-    sliceSound.setVolume(0.3);
+    sliceSound.setVolume(0.1);
+    winSound.setVolume(0.2);
+    loseSound.setVolume(0.2);
 }
 
 function draw() {
@@ -115,10 +126,13 @@ function draw() {
         fill("rgba(210, 0, 0, 0.8)"); // ("rgba(red, green, blue, alpha)") alpha = transparency
         text("Missed: " + missed, 10, 120);
 
-        // call spawnFruit function every x number of frames 
-        if (frameCount % 10 == 0) {
+        // call spawnFruit function every x number of frames
+        if (frameCount % spawnRate == 0) {
             // 60 frames = 1 second
-            spawnFruit();
+            // Spawn multiple fruits depending on difficultyLevel
+            for (let i = 0; i < difficultyLevel; i++) {
+                spawnFruit();
+            }
         }
 
         // handle slicing when mouse is pressed
@@ -142,8 +156,26 @@ function draw() {
         // Countdown = duration - time elapsed
         text("Time: " + (gameDuration - gameTimer).toFixed(2), width / 2, 60);
 
+        // Increase difficulty every 10 seconds
+        console.log(floor(gameTimer));
+        // if gameTimer is more than 0 seconds and when gameTimer is a multiple of 10
+        if (floor(gameTimer) > 0 && floor(gameTimer) % difficultyIncreaseTimer === 0) {
+            if (difficultyIncrease === false) {
+                difficultyIncrease = true; // Prevent increasing difficulty multiple times in a row
+                difficultyLevel += 1; // Increase number of fruits per spawn
+                if (spawnRate >= 40) {
+                    spawnRate -= 20; // Decrease interval between spawns (faster)
+                }
+                console.log("Difficulty: " + difficultyLevel + " fruits per spawn");
+                console.log("Spawn Rate: every " + (spawnRate / 60).toFixed(2) + " seconds");
+            }
+        } else {
+            // Reset when gameTimer is not multiple of difficultyIncreaseTimer
+            difficultyIncrease = false;
+        }
+
         // Win / Lose condition
-        if (missed >= 5) {  // Lose condition
+        if (missed >= 1000) {  // Lose condition
             gameState = "lose";
         } else if (score >= 20 || (gameDuration - gameTimer) <= 0) {  // Win condition
             gameState = "win";
@@ -152,6 +184,7 @@ function draw() {
         return;
     } else if (gameState === "win") {
         // Win screen text / stats
+        allSprites.removeAll();
         fill("rgb(255, 240, 10)") // Text colour
         stroke("rgb(20, 20, 20)"); // Text outline
         strokeWeight(15);
@@ -163,6 +196,13 @@ function draw() {
         textSize(50);
         text("Score: " + score, width / 2, height * 0.7);
         text("Missed: " + missed, width / 2, height * 0.8);
+
+        allSprites.removeAll(); // Delete all fruits
+        // Stop background music
+        if (bgMusic.isPlaying() === true) {
+            bgMusic.stop();
+            winSound.play();
+        }
         return;
     }  else if (gameState === "lose") {
         // Lose screen text / stats
@@ -177,6 +217,13 @@ function draw() {
         textSize(50);
         text("Score: " + score, width / 2, height * 0.7);
         text("Missed: " + missed, width / 2, height * 0.8);
+
+        allSprites.removeAll(); // Delete all fruits
+        // Stop background music
+        if (bgMusic.isPlaying() === true) {
+            bgMusic.stop();
+            loseSound.play();
+        }
         return;
     }
 }
