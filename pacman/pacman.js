@@ -17,7 +17,7 @@ let tilemap = [
     "w  dddd  w",
     "w  dddd  w",
     "w  dddd  w",
-    "w  dddd  w",
+    "w  wwww  w",
     "w  dddd  w",
     "w  dddd  w",
     "wp      pw",
@@ -115,15 +115,19 @@ function draw() {
     if (kb.presses("up") || kb.presses("w")) {
         pacman.vel.x = 0;
         pacman.vel.y = -2;
+        setMovement(pacman);
     } else if (kb.presses("down") || kb.presses("s")) {
         pacman.vel.x = 0;
         pacman.vel.y = 2;
+        setMovement(pacman);
     } else if (kb.presses("left") || kb.presses("a")) {
         pacman.vel.x = -2;
         pacman.vel.y = 0;
+        setMovement(pacman);
     } else if (kb.presses("right") || kb.presses("d")) {
         pacman.vel.x = 2;
         pacman.vel.y = 0;
+        setMovement(pacman);
     }
 
     // Loop through each dot in group
@@ -138,9 +142,25 @@ function draw() {
 
     // Call ghost movement
     for (let ghost of ghosts) {
-        if (frameCount % 60 === 0) {
+        // Change direction every second or when collide with wall
+        if (frameCount % 60 === 0 || ghost.colliding(walls)) {
             ghostDirection(ghost);
         }
+    }
+
+    // Fix sprite movement
+    for (let character of [pacman, ...ghosts]) {
+        // Skip sprites that are not moving
+        if (character.savedVX === undefined) continue;
+
+        if (character.savedVX !== 0) {
+            character.y = character.lane;
+        } else {
+            character.x = character.lane;
+        }
+
+        character.vel.x = character.savedVX;
+        character.vel.y = character.savedVY;
     }
 }
 
@@ -163,10 +183,19 @@ function ghostDirection(ghost) {
         ghost.vel.x = 2;
         ghost.vel.y = 0;
     }
+
+    setMovement(ghost);
 }
 
 // Center sprite movement
 function setMovement(character) {
-    character.x = round((character.x - 10) / 20) * 20 + 10;
-    character.y = round((character.y - 10) / 20) * 20 + 10;
+    character.savedVX = character.vel.x;
+    character.savedVY = character.vel.y;
+
+    if (character.savedVX !== 0) {   
+        character.lane = round((character.y - 10) / 20) * 20 + 10;
+    } else {
+        character.lane = round((character.x - 10) / 20) * 20 + 10;
+    }
+
 }
