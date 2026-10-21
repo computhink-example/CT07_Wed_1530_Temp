@@ -6,6 +6,7 @@ let powerups;
 // Game variables
 let pacman;
 let blinky, pinky, inky, clyde;
+let ghosts;
 
 let score = 0;
 
@@ -39,6 +40,7 @@ function setup() {
     walls.color = "blue";
     walls.collider = "static";
     walls.bounciness = 0;
+    walls.strokeWeight = 0; // Remove outline
     
     dots = new Group();
     dots.diameter = 5;
@@ -62,35 +64,47 @@ function setup() {
     pacman.diameter = 18;
     pacman.color = "yellow";
     pacman.bounciness = 0;
+    pacman.friction = 0;
 
     // Ghost sprites
     blinky = new Sprite();
     blinky.x = 50;
     blinky.y = 30;
-    blinky.diameter = 18;
     blinky.color = "red";
-    blinky.collider = "none";
     
     pinky = new Sprite();
     pinky.x = 70;
     pinky.y = 30;
-    pinky.diameter = 18;
     pinky.color = "pink";
-    pinky.collider = "none";
 
     inky = new Sprite();
     inky.x = 90;
     inky.y = 30;
-    inky.diameter = 18;
     inky.color = "cyan";
-    inky.collider = "none";
 
     clyde = new Sprite();
     clyde.x = 110;
     clyde.y = 30;
-    clyde.diameter = 18;
     clyde.color = "orange";
-    clyde.collider = "none";
+
+    ghosts = [blinky, pinky, inky, clyde];
+
+    for (let ghost of ghosts) {
+        ghost.diameter = 18;
+        ghost.collider = "dynamic";
+        ghost.bounciness = 0;
+        ghost.friction = 0;
+    }
+
+    for (let i = 0; i < ghosts.length; i++) {
+        // Allow ghost to pass through pacman
+        ghosts[i].overlaps(pacman);
+
+        for (let j = i + 1; j < ghosts.length; j++) {
+            // Allow ghosts to pass through each other
+            ghosts[i].overlaps(ghosts[j]);
+        }
+    }
 }
 
 function draw() {
@@ -122,7 +136,12 @@ function draw() {
         }
     }
 
-
+    // Call ghost movement
+    for (let ghost of ghosts) {
+        if (frameCount % 60 === 0) {
+            ghostDirection(ghost);
+        }
+    }
 }
 
 // Function for ghosts to move in random directions
@@ -130,5 +149,22 @@ function ghostDirection(ghost) {
     // Random number to choose direction
     let direction = floor(random(1, 5));
     
+    // Ghost movement
+    if (direction === 1) {
+        ghost.vel.x = 0;
+        ghost.vel.y = -2;
+    } else if (direction === 2) {
+        ghost.vel.x = 0;
+        ghost.vel.y = 2;
+    } else if (direction === 3) {
+        ghost.vel.x = -2;
+        ghost.vel.y = 0;
+    } else if (direction === 4) {
+        ghost.vel.x = 2;
+        ghost.vel.y = 0;
+    }
+}
+
+function setMovement() {
     
 }
